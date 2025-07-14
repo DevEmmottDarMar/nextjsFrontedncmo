@@ -1,0 +1,22 @@
+# Copia este contenido a un archivo .env.local en la raíz del proyecto
+
+# Variables de entorno para el Frontend CMO
+# URL del Backend API en Railway
+NEXT_PUBLIC_API_URL=https://cmobackendnest-production.up.railway.app
+
+# URL del WebSocket en Railway
+NEXT_PUBLIC_WS_URL=wss://cmobackendnest-production.up.railway.app
+
+# Configuración de autenticación
+NEXT_PUBLIC_JWT_SECRET_KEY=your-jwt-secret-key-here
+
+# Configuración de la aplicación
+NEXT_PUBLIC_APP_NAME=CMO Dashboard
+NEXT_PUBLIC_APP_VERSION=1.0.0
+
+# Configuración de desarrollo
+NEXT_PUBLIC_ENV=production
+
+# Configuración para conexiones WebSocket
+NEXT_PUBLIC_WS_RECONNECT_INTERVAL=5000
+NEXT_PUBLIC_WS_MAX_RECONNECT_ATTEMPTS=5 
