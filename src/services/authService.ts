@@ -30,6 +30,19 @@ class AuthService {
     return typeof window !== "undefined";
   }
 
+  // Obtener información del usuario desde el token JWT
+  private getUserIdFromToken(token: string): string | null {
+    try {
+      // Decodificar la parte payload del JWT (base64)
+      const payload = token.split(".")[1];
+      const decodedPayload = JSON.parse(atob(payload));
+      return decodedPayload.sub || null; // 'sub' contiene el ID del usuario
+    } catch (error) {
+      console.error("Error al decodificar token:", error);
+      return null;
+    }
+  }
+
   // Login del usuario
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
@@ -99,28 +112,91 @@ class AuthService {
         token.substring(0, 20) + "..."
       );
 
-      const response = await fetch(`${API_URL}/users/profile`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error al obtener perfil:", {
-          status: response.status,
-          text: errorText,
+      // Primero intentar el nuevo endpoint /users/profile
+      try {
+        const response = await fetch(`${API_URL}/users/profile`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         });
-        throw new Error(`Error al obtener perfil: ${response.status}`);
-      }
 
-      const user = await response.json();
-      if (this.isClient()) {
-        localStorage.setItem("user", JSON.stringify(user));
+        if (response.ok) {
+          const user = await response.json();
+          if (this.isClient()) {
+            localStorage.setItem("user", JSON.stringify(user));
+          }
+          return user;
+        }
+
+        // Si el endpoint /users/profile no existe (404), usar método alternativo
+        if (response.status === 404) {
+          console.log(
+            "Endpoint /users/profile no disponible, usando método alternativo"
+          );
+          throw new Error("ENDPOINT_NOT_FOUND");
+        }
+
+        // Para otros errores, manejar normalmente
+        if (response.status === 500) {
+          throw new Error("SERVER_ERROR");
+        }
+
+        if (response.status === 401 || response.status === 403) {
+          throw new Error("TOKEN_INVALID");
+        }
+
+        throw new Error(`Error al obtener perfil: ${response.status}`);
+      } catch (profileError) {
+        // Si el endpoint no existe, usar método alternativo con el ID del token
+        if (
+          profileError instanceof Error &&
+          profileError.message === "ENDPOINT_NOT_FOUND"
+        ) {
+          console.log("Usando método alternativo: GET /users/:id");
+
+          const userId = this.getUserIdFromToken(token);
+          if (!userId) {
+            throw new Error("No se pudo obtener ID del usuario del token");
+          }
+
+          const response = await fetch(`${API_URL}/users/${userId}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Error al obtener perfil (método alternativo):", {
+              status: response.status,
+              text: errorText,
+            });
+
+            if (response.status === 500) {
+              throw new Error("SERVER_ERROR");
+            }
+
+            if (response.status === 401 || response.status === 403) {
+              throw new Error("TOKEN_INVALID");
+            }
+
+            throw new Error(`Error al obtener perfil: ${response.status}`);
+          }
+
+          const user = await response.json();
+          if (this.isClient()) {
+            localStorage.setItem("user", JSON.stringify(user));
+          }
+          return user;
+        }
+
+        // Re-lanzar otros errores
+        throw profileError;
       }
-      return user;
     } catch (error) {
       console.error("Error al obtener perfil:", error);
       throw error;

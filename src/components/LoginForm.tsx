@@ -38,6 +38,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
     }));
   };
 
+  const fillCredentials = (email: string, password: string) => {
+    setCredentials({ email, password });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-2xl">
@@ -90,7 +94,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
                 value={credentials.email}
                 onChange={handleInputChange}
                 className="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="usuario@empresa.com"
+                placeholder="usuario@demo.com"
               />
             </div>
 
@@ -162,14 +166,47 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
 
           {/* Usuarios de prueba */}
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
               Usuarios de prueba:
             </h3>
-            <div className="text-xs text-gray-600 space-y-1">
-              <div>👨‍💼 Admin: admin@cmo.com / password123</div>
-              <div>👷‍♂️ Técnico: carlos.innovador@cmo.com / password123</div>
-              <div>📊 Supervisor: supervisor@cmo.com / password123</div>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => fillCredentials("admin1@demo.com", "123456")}
+                className="w-full text-left p-2 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors duration-200 border border-transparent hover:border-gray-200"
+              >
+                👨‍💼 <strong>Admin:</strong> admin1@demo.com / 123456
+              </button>
+              <button
+                type="button"
+                onClick={() => fillCredentials("tecnico1@demo.com", "123456")}
+                className="w-full text-left p-2 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors duration-200 border border-transparent hover:border-gray-200"
+              >
+                👷‍♂️ <strong>Técnico:</strong> tecnico1@demo.com / 123456
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  fillCredentials("supervisor1@demo.com", "123456")
+                }
+                className="w-full text-left p-2 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors duration-200 border border-transparent hover:border-gray-200"
+              >
+                📊 <strong>Supervisor:</strong> supervisor1@demo.com / 123456
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  fillCredentials("planificador1@demo.com", "123456")
+                }
+                className="w-full text-left p-2 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors duration-200 border border-transparent hover:border-gray-200"
+              >
+                📋 <strong>Planificador:</strong> planificador1@demo.com /
+                123456
+              </button>
             </div>
+            <p className="text-xs text-gray-500 mt-2">
+              💡 Haz clic en cualquier usuario para auto-completar el formulario
+            </p>
           </div>
         </form>
       </div>
