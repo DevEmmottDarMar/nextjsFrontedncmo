@@ -5,6 +5,7 @@ import { User } from "@/services/authService";
 import { useWebSocketSimple } from "@/hooks/useWebSocketSimple";
 import NotificationManager from "@/components/NotificationManager";
 import ActiveNotifications from "@/components/ActiveNotifications";
+import TrabajosPendientesAprobacion from "@/components/TrabajosPendientesAprobacion";
 import {
   HomeIcon,
   UsersIcon,
@@ -31,6 +32,11 @@ const navigation = [
   { name: "Técnicos", icon: UsersIcon, tab: "tecnicos" },
   { name: "Notificaciones", icon: BellIcon, tab: "notificaciones" },
   { name: "Trabajos", icon: Cog6ToothIcon, tab: "trabajos" },
+  {
+    name: "Aprobar Trabajos",
+    icon: ClipboardDocumentListIcon,
+    tab: "aprobar_trabajos",
+  },
   { name: "Permisos", icon: ClipboardDocumentListIcon, tab: "permisos" },
   { name: "Equipos", icon: Cog6ToothIcon, tab: "equipos" },
 ];
@@ -221,7 +227,7 @@ export default function SupervisorDashboard({
 
           {activeTab === "notificaciones" && (
             <NotificationsSection notificationHistory={notificationHistory} />
-                )}
+          )}
 
           {activeTab === "trabajos" && (
             <TrabajosSection
@@ -231,6 +237,23 @@ export default function SupervisorDashboard({
               cargarTrabajos={cargarTrabajos}
               connectedUsers={connectedUsers}
             />
+          )}
+
+          {activeTab === "aprobar_trabajos" && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <TrabajosPendientesAprobacion
+                onTrabajoAprobado={(trabajoId) => {
+                  console.log("Trabajo aprobado:", trabajoId);
+                  // Recargar trabajos después de aprobar
+                  cargarTrabajos();
+                }}
+                onTrabajoRechazado={(trabajoId) => {
+                  console.log("Trabajo rechazado:", trabajoId);
+                  // Recargar trabajos después de rechazar
+                  cargarTrabajos();
+                }}
+              />
+            </div>
           )}
 
           {activeTab === "permisos" && (
