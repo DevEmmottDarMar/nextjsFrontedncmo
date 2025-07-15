@@ -34,6 +34,9 @@ export default function Sidebar({
         expanded ? "w-56" : "w-16"
       }`}
     >
+      {/* Espaciado para el header */}
+      <div className="h-16"></div>
+      
       {/* Botón menú hamburguesa */}
       <div className="flex items-center justify-center h-16 border-b border-gray-800">
         <button
@@ -49,24 +52,38 @@ export default function Sidebar({
           <button
             key={item.tab}
             onClick={() => handleTabClick(item.tab)}
-            className={`w-full flex items-center px-3 py-2 text-left transition-colors duration-150 hover:bg-gray-800 focus:outline-none ${
+            className={`w-full transition-colors duration-150 hover:bg-gray-800 focus:outline-none ${
               activeTab === item.tab ? "bg-gray-800 text-blue-400" : ""
             }`}
           >
-            <item.icon className="h-6 w-6 mx-auto" />
-            {expanded && <span className="ml-3 font-medium">{item.name}</span>}
+            {expanded ? (
+              <div className="flex items-center px-3 py-3 text-left">
+                <item.icon className="h-6 w-6" />
+                <span className="ml-3 font-medium">{item.name}</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-4 h-14 w-full">
+                <item.icon className="h-7 w-7" />
+              </div>
+            )}
           </button>
         ))}
       </nav>
       <div className="mt-auto flex flex-col">
         <button
           onClick={handleLogout}
-          className={`flex items-center px-3 py-2 text-left w-full border-t border-gray-800 hover:bg-gray-800 focus:outline-none ${
-            expanded ? "" : "justify-center"
-          }`}
+          className="w-full border-t border-gray-800 hover:bg-gray-800 focus:outline-none transition-colors duration-150"
         >
-          <ArrowRightOnRectangleIcon className="h-6 w-6" />
-          {expanded && <span className="ml-3">Cerrar sesión</span>}
+          {expanded ? (
+            <div className="flex items-center px-3 py-3 text-left">
+              <ArrowRightOnRectangleIcon className="h-6 w-6" />
+              <span className="ml-3">Cerrar sesión</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-4 h-14 w-full">
+              <ArrowRightOnRectangleIcon className="h-7 w-7" />
+            </div>
+          )}
         </button>
         {expanded && (
           <div className="flex items-center px-4 py-3 font-bold text-base tracking-wide">

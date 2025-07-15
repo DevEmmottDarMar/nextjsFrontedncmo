@@ -8,6 +8,7 @@ import {
   SupervisorDashboard,
   AdminDashboard,
 } from "./dashboards";
+import Header from "./Header";
 
 interface DashboardProps {
   onLogout: () => void;
@@ -15,19 +16,11 @@ interface DashboardProps {
 
 export default function Dashboard({ onLogout }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     // Obtener usuario del localStorage
     const userData = authService.getUser();
     setUser(userData);
-
-    // Actualizar tiempo cada segundo
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
   }, []);
 
   const handleLogout = () => {
@@ -108,64 +101,17 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <svg
-                  className="h-5 w-5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h6m-6 4h6m-6 4h6"
-                  />
-                </svg>
-              </div>
-              <h1 className="ml-3 text-2xl font-bold text-gray-900">
-                CMO Dashboard
-              </h1>
-            </div>
+      {/* Enhanced Header Component */}
+      <Header user={user} onLogout={handleLogout} />
 
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">
-                {currentTime.toLocaleString("es-ES", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  second: "2-digit",
-                })}
-              </div>
-              <div className="text-sm text-gray-700">
-                <span className="font-medium">{user.nombre}</span>
-                <span className="ml-2 text-xs px-2 py-1 bg-gray-100 rounded-full capitalize">
-                  {user.rol}
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-              >
-                Cerrar Sesión
-              </button>
-            </div>
+      {/* Main Content - Con padding-top para compensar el header sticky limpio */}
+      <main className="pt-16 pb-6 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Role-Specific Dashboard Content */}
+          <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+            {renderRoleSpecificDashboard()}
           </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Role-Specific Dashboard Content */}
-        {renderRoleSpecificDashboard()}
       </main>
     </div>
   );

@@ -152,16 +152,16 @@ export const useWebSocket = (): UseWebSocketReturn => {
 
               case "userConnected":
                 console.log("Nuevo usuario conectado:", message.message);
-
+                
                 // Prevenir notificaciones duplicadas del mismo usuario
                 const now = Date.now();
                 const userId = message.user?.id;
                 const lastNotification = lastNotificationRef.current;
-
+                
                 if (
                   userId &&
                   lastNotification &&
-                  lastNotification.userId === userId &&
+                    lastNotification.userId === userId && 
                   now - lastNotification.timestamp < 5000
                 ) {
                   console.log(
@@ -170,12 +170,12 @@ export const useWebSocket = (): UseWebSocketReturn => {
                   );
                   break;
                 }
-
+                
                 // Actualizar referencia de última notificación
                 if (userId) {
                   lastNotificationRef.current = { userId, timestamp: now };
                 }
-
+                
                 // Mostrar notificación nativa
                 showNotification("Nuevo Usuario Conectado", {
                   body: message.message,

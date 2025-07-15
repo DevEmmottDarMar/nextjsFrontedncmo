@@ -221,7 +221,7 @@ export default function SupervisorDashboard({
 
           {activeTab === "notificaciones" && (
             <NotificationsSection notificationHistory={notificationHistory} />
-          )}
+                )}
 
           {activeTab === "trabajos" && (
             <TrabajosSection
