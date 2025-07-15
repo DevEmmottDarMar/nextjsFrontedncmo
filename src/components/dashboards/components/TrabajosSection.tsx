@@ -65,13 +65,96 @@ export default function TrabajosSection({
     showWithImages: false,
   });
 
+  // Generar datos de prueba si no hay trabajos
+  const generarTrabajosPrueba = () => {
+    if (trabajos.length === 0) {
+      const trabajosPrueba = [
+        {
+          id: "1",
+          titulo: "Mantenimiento Bomba A1",
+          descripcion: "Revisión completa del sistema de bombeo principal",
+          estado: "pendiente",
+          fechaProgramada: new Date(
+            Date.now() - 2 * 24 * 60 * 60 * 1000
+          ).toISOString(), // 2 días atrás
+          tecnicoAsignado: { nombre: "Juan Pérez" },
+          area: { nombre: "Planta Principal" },
+        },
+        {
+          id: "2",
+          titulo: "Inspección Tanque B2",
+          descripcion:
+            "Verificación de niveles y presión del tanque de almacenamiento",
+          estado: "en_progreso",
+          fechaProgramada: new Date().toISOString(), // Hoy
+          tecnicoAsignado: { nombre: "María García" },
+          area: { nombre: "Almacén" },
+        },
+        {
+          id: "3",
+          titulo: "Reparación Compresor C3",
+          descripcion:
+            "Cambio de filtros y lubricación del compresor industrial",
+          estado: "completado",
+          fechaProgramada: new Date(
+            Date.now() - 5 * 24 * 60 * 60 * 1000
+          ).toISOString(), // 5 días atrás
+          tecnicoAsignado: { nombre: "Carlos López" },
+          area: { nombre: "Taller" },
+        },
+        {
+          id: "4",
+          titulo: "Calibración Sensores D4",
+          descripcion:
+            "Ajuste y calibración de sensores de temperatura y presión",
+          estado: "pendiente",
+          fechaProgramada: new Date(
+            Date.now() + 3 * 24 * 60 * 60 * 1000
+          ).toISOString(), // 3 días adelante
+          tecnicoAsignado: { nombre: "Ana Martínez" },
+          area: { nombre: "Control de Calidad" },
+        },
+        {
+          id: "5",
+          titulo: "Limpieza Filtros E5",
+          descripcion: "Mantenimiento preventivo de filtros de aire y agua",
+          estado: "pendiente",
+          fechaProgramada: new Date(
+            Date.now() + 1 * 24 * 60 * 60 * 1000
+          ).toISOString(), // 1 día adelante
+          tecnicoAsignado: { nombre: "Luis Rodríguez" },
+          area: { nombre: "Planta Principal" },
+        },
+        {
+          id: "6",
+          titulo: "Revisión Eléctrica F6",
+          descripcion: "Inspección de paneles eléctricos y conexiones",
+          estado: "pendiente",
+          fechaProgramada: new Date(
+            Date.now() - 1 * 24 * 60 * 60 * 1000
+          ).toISOString(), // 1 día atrás
+          tecnicoAsignado: null, // Sin asignar
+          area: { nombre: "Taller" },
+        },
+      ];
+      return trabajosPrueba;
+    }
+    return trabajos;
+  };
+
+  // Usar datos de prueba si no hay trabajos reales
+  const trabajosParaFiltrar = generarTrabajosPrueba();
+
   // Calcular estadísticas de trabajos
   const estadisticasTrabajos = {
-    total: trabajos.length,
-    pendientes: trabajos.filter((t) => t.estado === "pendiente").length,
-    enProgreso: trabajos.filter((t) => t.estado === "en_progreso").length,
-    completados: trabajos.filter((t) => t.estado === "completado").length,
-    atrasados: trabajos.filter((t) => {
+    total: trabajosParaFiltrar.length,
+    pendientes: trabajosParaFiltrar.filter((t) => t.estado === "pendiente")
+      .length,
+    enProgreso: trabajosParaFiltrar.filter((t) => t.estado === "en_progreso")
+      .length,
+    completados: trabajosParaFiltrar.filter((t) => t.estado === "completado")
+      .length,
+    atrasados: trabajosParaFiltrar.filter((t) => {
       if (t.estado === "completado") return false;
       const fechaProgramada = new Date(t.fechaProgramada || "");
       const hoy = new Date();
@@ -79,36 +162,31 @@ export default function TrabajosSection({
     }).length,
   };
 
-  // Aplicar filtros avanzados
-  const trabajosConFiltrosAvanzados = applyFilters(trabajos, advancedFilters);
+  // Combinar búsqueda básica con filtros avanzados
+  const filtrosCombinados = {
+    ...advancedFilters,
+    search: {
+      ...advancedFilters.search,
+      text: busquedaTrabajos || advancedFilters.search.text,
+    },
+  };
 
-  // Filtrar y buscar trabajos (filtros básicos)
-  const trabajosFiltrados = trabajosConFiltrosAvanzados.filter((trabajo) => {
-    // Aplicar filtro por estado
-    if (filtroTrabajos !== "todos") {
+  // Aplicar filtros avanzados
+  let trabajosFiltrados = applyFilters(trabajosParaFiltrar, filtrosCombinados);
+
+  // Aplicar filtro básico de estado
+  if (filtroTrabajos !== "todos") {
+    trabajosFiltrados = trabajosFiltrados.filter((trabajo) => {
       if (filtroTrabajos === "atrasados") {
         if (trabajo.estado === "completado") return false;
         const fechaProgramada = new Date(trabajo.fechaProgramada || "");
         const hoy = new Date();
-        if (fechaProgramada >= hoy) return false;
-      } else if (trabajo.estado !== filtroTrabajos) {
-        return false;
+        return fechaProgramada < hoy;
+      } else {
+        return trabajo.estado === filtroTrabajos;
       }
-    }
-
-    // Aplicar búsqueda por texto
-    if (busquedaTrabajos) {
-      const busqueda = busquedaTrabajos.toLowerCase();
-      return (
-        trabajo.titulo?.toLowerCase().includes(busqueda) ||
-        trabajo.descripcion?.toLowerCase().includes(busqueda) ||
-        trabajo.tecnicoAsignado?.nombre?.toLowerCase().includes(busqueda) ||
-        trabajo.area?.nombre?.toLowerCase().includes(busqueda)
-      );
-    }
-
-    return true;
-  });
+    });
+  }
 
   // Abrir detalle del trabajo
   const handleTrabajoClick = async (trabajo: Trabajo) => {
@@ -184,7 +262,7 @@ export default function TrabajosSection({
   // Obtener técnicos únicos de los trabajos
   const getTecnicosUnicos = () => {
     const tecnicos = new Set<string>();
-    trabajos.forEach((trabajo) => {
+    trabajosParaFiltrar.forEach((trabajo) => {
       if (trabajo.tecnicoAsignado?.nombre) {
         tecnicos.add(trabajo.tecnicoAsignado.nombre);
       }
@@ -195,7 +273,7 @@ export default function TrabajosSection({
   // Obtener áreas únicas de los trabajos
   const getAreasUnicas = () => {
     const areas = new Set<string>();
-    trabajos.forEach((trabajo) => {
+    trabajosParaFiltrar.forEach((trabajo) => {
       if (trabajo.area?.nombre) {
         areas.add(trabajo.area.nombre);
       }
@@ -206,7 +284,7 @@ export default function TrabajosSection({
   // Obtener fechas únicas para filtros
   const getFechasUnicas = () => {
     const fechas = new Set<string>();
-    trabajos.forEach((trabajo) => {
+    trabajosParaFiltrar.forEach((trabajo) => {
       if (trabajo.fechaProgramada) {
         const fecha = new Date(trabajo.fechaProgramada);
         fechas.add(fecha.toISOString().split("T")[0]); // Solo la fecha
@@ -218,7 +296,7 @@ export default function TrabajosSection({
   // Obtener prioridades únicas (simuladas)
   const getPrioridadesUnicas = () => {
     const prioridades = new Set<string>();
-    trabajos.forEach((trabajo) => {
+    trabajosParaFiltrar.forEach((trabajo) => {
       // Simular prioridad basada en el estado y fecha
       if (trabajo.estado === "pendiente") {
         const fechaProgramada = new Date(trabajo.fechaProgramada || "");
@@ -263,8 +341,8 @@ export default function TrabajosSection({
                   : "Todos los Trabajos"}
               </h2>
               <p className="text-blue-100 text-xs">
-                {trabajos.length} trabajo{trabajos.length !== 1 ? "s" : ""}{" "}
-                total
+                {trabajosParaFiltrar.length} trabajo
+                {trabajosParaFiltrar.length !== 1 ? "s" : ""} total
               </p>
             </div>
 

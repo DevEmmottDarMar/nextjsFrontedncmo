@@ -29,57 +29,86 @@ export const applyFilters = (trabajos: any[], filters: FilterState) => {
   return trabajos.filter((trabajo) => {
     // Filtro por fecha
     if (filters.dateRange.start || filters.dateRange.end) {
-      const trabajoDate = new Date(trabajo.fechaCreacion || trabajo.createdAt);
+      const trabajoDate = new Date(
+        trabajo.fechaProgramada || trabajo.fechaCreacion || trabajo.createdAt
+      );
       if (filters.dateRange.start && trabajoDate < filters.dateRange.start)
         return false;
       if (filters.dateRange.end && trabajoDate > filters.dateRange.end)
         return false;
     }
 
-    // Filtro por técnicos
+    // Filtro por técnicos (por nombre)
     if (filters.technicians.length > 0) {
-      const tecnicoId = trabajo.tecnico?.id || trabajo.tecnicoId;
-      if (!filters.technicians.includes(tecnicoId)) return false;
+      const tecnicoNombre =
+        trabajo.tecnicoAsignado?.nombre || trabajo.tecnico?.nombre;
+      if (!tecnicoNombre || !filters.technicians.includes(tecnicoNombre))
+        return false;
     }
 
-    // Filtro por estados
+    // Filtro por áreas (usando statuses para áreas)
     if (filters.statuses.length > 0) {
-      const estado =
-        trabajo.estado?.toLowerCase() || trabajo.status?.toLowerCase();
-      if (!filters.statuses.includes(estado)) return false;
+      const areaNombre = trabajo.area?.nombre;
+      if (!areaNombre || !filters.statuses.includes(areaNombre)) return false;
     }
 
-    // Filtro por prioridad
+    // Filtro por prioridad (calculada dinámicamente)
     if (filters.priorities.length > 0) {
-      const prioridad =
-        trabajo.prioridad?.toLowerCase() || trabajo.priority?.toLowerCase();
-      if (!filters.priorities.includes(prioridad)) return false;
+      let prioridadCalculada = "Baja";
+
+      if (trabajo.estado === "pendiente" && trabajo.fechaProgramada) {
+        const fechaProgramada = new Date(trabajo.fechaProgramada);
+        const hoy = new Date();
+        const diasDiferencia = Math.ceil(
+          (fechaProgramada.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (diasDiferencia < 0) {
+          prioridadCalculada = "Crítica";
+        } else if (diasDiferencia <= 2) {
+          prioridadCalculada = "Alta";
+        } else if (diasDiferencia <= 7) {
+          prioridadCalculada = "Media";
+        }
+      }
+
+      if (!filters.priorities.includes(prioridadCalculada)) return false;
     }
 
     // Filtro de búsqueda
-    if (filters.search.text && filters.search.fields.length > 0) {
+    if (filters.search.text) {
       const searchText = filters.search.text.toLowerCase();
-      const hasMatch = filters.search.fields.some((field) => {
-        const fieldValue = trabajo[field]?.toString().toLowerCase() || "";
-        return fieldValue.includes(searchText);
-      });
-      if (!hasMatch) return false;
+      const titulo = trabajo.titulo?.toLowerCase() || "";
+      const descripcion = trabajo.descripcion?.toLowerCase() || "";
+      const tecnico = trabajo.tecnicoAsignado?.nombre?.toLowerCase() || "";
+      const area = trabajo.area?.nombre?.toLowerCase() || "";
+
+      if (
+        !titulo.includes(searchText) &&
+        !descripcion.includes(searchText) &&
+        !tecnico.includes(searchText) &&
+        !area.includes(searchText)
+      ) {
+        return false;
+      }
     }
 
     // Filtro de trabajos atrasados
     if (filters.showOverdue) {
-      const fechaLimite = new Date(trabajo.fechaLimite || trabajo.dueDate);
-      if (fechaLimite > new Date()) return false;
+      if (trabajo.estado === "completado") return false;
+      const fechaProgramada = new Date(trabajo.fechaProgramada || "");
+      const hoy = new Date();
+      if (fechaProgramada >= hoy) return false;
     }
 
     // Filtro de trabajos sin asignar
     if (filters.showUnassigned) {
-      if (trabajo.tecnico || trabajo.tecnicoId) return false;
+      if (trabajo.tecnicoAsignado?.nombre) return false;
     }
 
-    // Filtro de trabajos con imágenes
+    // Filtro de trabajos con imágenes (simulado)
     if (filters.showWithImages) {
-      if (!trabajo.imagenes || trabajo.imagenes.length === 0) return false;
+      if (!trabajo.descripcion || trabajo.descripcion.length < 10) return false;
     }
 
     return true;
