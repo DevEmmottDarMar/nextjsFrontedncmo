@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import LoginForm from "@/components/LoginForm";
 import Dashboard from "@/components/Dashboard";
 import { authService } from "@/services/authService";
-import { useWebSocketNotifications } from "@/hooks/useWebSocketNotifications";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import NotificationManager from "@/components/NotificationManager";
 
 export default function HomePage() {
@@ -13,7 +13,8 @@ export default function HomePage() {
   const [isMounted, setIsMounted] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const { notifications, removeNotification } = useWebSocketNotifications();
+  // Usar el hook principal de WebSocket que maneja todo
+  const { isConnected, connectedUsers, lastMessage } = useWebSocket();
 
   useEffect(() => {
     // Marcar que el componente se ha montado (client-side)
@@ -184,13 +185,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Notificaciones WebSocket */}
-      {isAuthenticated && (
-        <NotificationManager
-          notifications={notifications}
-          onRemoveNotification={removeNotification}
-        />
-      )}
+      {/* Las notificaciones se manejan en el Dashboard */}
     </>
   );
 }

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { User } from "@/services/authService";
-import { useWebSocketSimple } from "@/hooks/useWebSocketSimple";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { usePermisoNotifications } from "@/hooks/usePermisoNotifications";
 import NotificationManager from "@/components/NotificationManager";
 import ActiveNotifications from "@/components/ActiveNotifications";
 import TrabajosPendientesAprobacion from "@/components/TrabajosPendientesAprobacion";
@@ -45,7 +46,10 @@ export default function SupervisorDashboard({
   user,
 }: SupervisorDashboardProps) {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const { isConnected, connectedUsers, onUserConnected } = useWebSocketSimple();
+  const { isConnected, connectedUsers, onUserConnected } = useWebSocket();
+  const { permisoNotifications, removePermisoNotification } =
+    usePermisoNotifications();
+
   const [notifications, setNotifications] = useState<any[]>([]);
   const [notificationHistory, setNotificationHistory] = useState<any[]>([]);
   const notificationIds = useRef<Set<string>>(new Set());
@@ -81,7 +85,13 @@ export default function SupervisorDashboard({
     { id: 1, equipo: "Compresor C3", estado: "Alerta", ubicacion: "Zona C" },
   ];
 
-  // Lógica para notificaciones automáticas
+  // 🔔 Manejar notificaciones de permisos desde el WebSocket principal
+  useEffect(() => {
+    // Esta lógica se maneja ahora en el hook useWebSocket
+    // que ya incluye el manejo de notificaciones de permisos
+  }, []);
+
+  // Lógica para notificaciones automáticas de conexión
   useEffect(() => {
     if (onUserConnected) {
       onUserConnected((user) => {
@@ -143,37 +153,32 @@ export default function SupervisorDashboard({
           trabajosDelArea = data;
         }
         setTrabajos(trabajosDelArea);
+      } else {
+        console.error("Error cargando trabajos:", response.statusText);
       }
     } catch (error) {
-      console.error("❌ Error al cargar trabajos:", error);
+      console.error("Error cargando trabajos:", error);
     } finally {
       setLoadingTrabajos(false);
     }
   };
 
-  // Cargar trabajos al montar el componente
   useEffect(() => {
-    if (user) {
-      cargarTrabajos();
-    }
-  }, [user]);
+    cargarTrabajos();
+  }, [user?.area?.id]);
 
-  // Cerrar sesión
   const handleLogout = () => {
-    window.location.href = "/login";
+    // Implementar logout
+    console.log("Logout clicked");
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <Sidebar
         navigation={navigation}
         activeTab={activeTab}
-        setActiveTab={(tab) => {
-          setActiveTab(tab);
-          setSidebarExpanded(false);
-        }}
-        handleLogout={handleLogout}
+        setActiveTab={setActiveTab}
         expanded={sidebarExpanded}
         setExpanded={setSidebarExpanded}
       />
@@ -222,56 +227,57 @@ export default function SupervisorDashboard({
           )}
 
           {activeTab === "tecnicos" && (
-            <TecnicosSection tecnicosConectados={tecnicosConectados} />
+            <TecnicosSection
+              tecnicosConectados={tecnicosConectados}
+              isConnected={isConnected}
+            />
           )}
 
           {activeTab === "notificaciones" && (
-            <NotificationsSection notificationHistory={notificationHistory} />
+            <NotificationsSection
+              notificationHistory={notificationHistory}
+              setNotificationHistory={setNotificationHistory}
+            />
           )}
 
           {activeTab === "trabajos" && (
             <TrabajosSection
               trabajos={trabajos}
               loadingTrabajos={loadingTrabajos}
-              user={user}
               cargarTrabajos={cargarTrabajos}
-              connectedUsers={connectedUsers}
             />
           )}
 
           {activeTab === "aprobar_trabajos" && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <TrabajosPendientesAprobacion
-                onTrabajoAprobado={(trabajoId) => {
-                  console.log("Trabajo aprobado:", trabajoId);
-                  // Recargar trabajos después de aprobar
-                  cargarTrabajos();
-                }}
-                onTrabajoRechazado={(trabajoId) => {
-                  console.log("Trabajo rechazado:", trabajoId);
-                  // Recargar trabajos después de rechazar
-                  cargarTrabajos();
-                }}
-              />
-            </div>
+            <TrabajosPendientesAprobacion
+              trabajos={trabajos}
+              loadingTrabajos={loadingTrabajos}
+              cargarTrabajos={cargarTrabajos}
+            />
           )}
 
           {activeTab === "permisos" && (
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-bold mb-4 text-gray-900">
-                Permisos pendientes
+                Permisos Pendientes
               </h2>
-              <table className="min-w-full text-sm">
+              <table className="min-w-full">
                 <thead>
-                  <tr>
-                    <th className="text-left py-2 px-4">Solicitante</th>
-                    <th className="text-left py-2 px-4">Tipo</th>
-                    <th className="text-left py-2 px-4">Estado</th>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-4 font-medium text-gray-900">
+                      Técnico
+                    </th>
+                    <th className="text-left py-2 px-4 font-medium text-gray-900">
+                      Tipo
+                    </th>
+                    <th className="text-left py-2 px-4 font-medium text-gray-900">
+                      Estado
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {permisosPendientes.map((p) => (
-                    <tr key={p.id} className="border-t">
+                    <tr key={p.id} className="border-b border-gray-100">
                       <td className="py-2 px-4">{p.nombre}</td>
                       <td className="py-2 px-4">{p.tipo}</td>
                       <td className="py-2 px-4">
@@ -304,11 +310,8 @@ export default function SupervisorDashboard({
                     <span className="font-medium text-gray-800">
                       {e.equipo}
                     </span>
-                    <span className="ml-2 text-xs text-red-600">
+                    <span className="ml-auto text-sm text-red-600 font-medium">
                       {e.estado}
-                    </span>
-                    <span className="ml-2 text-xs text-gray-500">
-                      {e.ubicacion}
                     </span>
                   </li>
                 ))}
@@ -316,7 +319,14 @@ export default function SupervisorDashboard({
             </div>
           )}
         </main>
-        <TecnicosChatPanel tecnicosConectados={tecnicosConectados} />
+
+        {/* Panel de chat con técnicos */}
+        {showUserPanel && (
+          <TecnicosChatPanel
+            tecnicosConectados={tecnicosConectados}
+            onClose={() => setShowUserPanel(false)}
+          />
+        )}
       </div>
     </div>
   );

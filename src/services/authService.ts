@@ -112,6 +112,23 @@ class AuthService {
         token.substring(0, 20) + "..."
       );
 
+      // Verificar si el token es válido antes de hacer la petición
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const expirationTime = payload.exp * 1000; // Convertir a milisegundos
+        const currentTime = Date.now();
+
+        if (currentTime > expirationTime) {
+          console.log("Token expirado, limpiando datos de sesión");
+          this.logout();
+          throw new Error("TOKEN_EXPIRED");
+        }
+      } catch (tokenError) {
+        console.error("Error al verificar token:", tokenError);
+        this.logout();
+        throw new Error("TOKEN_INVALID");
+      }
+
       // Primero intentar el nuevo endpoint /users/profile
       try {
         const response = await fetch(`${API_URL}/users/profile`, {
@@ -144,6 +161,8 @@ class AuthService {
         }
 
         if (response.status === 401 || response.status === 403) {
+          console.log("Token inválido, limpiando datos de sesión");
+          this.logout();
           throw new Error("TOKEN_INVALID");
         }
 
@@ -181,6 +200,8 @@ class AuthService {
             }
 
             if (response.status === 401 || response.status === 403) {
+              console.log("Token inválido, limpiando datos de sesión");
+              this.logout();
               throw new Error("TOKEN_INVALID");
             }
 

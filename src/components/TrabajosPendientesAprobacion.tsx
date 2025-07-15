@@ -30,30 +30,11 @@ export default function TrabajosPendientesAprobacion({
     try {
       setLoading(true);
       setError(null);
-
-      // Verificar autenticación
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No estás autenticado. Por favor, inicia sesión.");
-        return;
-      }
-
-      console.log("🔍 Cargando trabajos pendientes de aprobación...");
       const data = await trabajosService.getTrabajosPendientesAprobacion();
       setTrabajos(data);
-    } catch (err: any) {
+    } catch (err) {
+      setError("Error al cargar trabajos pendientes");
       console.error("Error loading trabajos:", err);
-
-      // Mostrar mensaje de error más específico
-      if (err.message?.includes("No autorizado")) {
-        setError(
-          "No tienes permisos para ver esta información. Verifica tu sesión."
-        );
-      } else if (err.message?.includes("Error interno")) {
-        setError("Error del servidor. Intenta más tarde.");
-      } else {
-        setError(err.message || "Error al cargar trabajos pendientes");
-      }
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { NOTIFICATION_TYPES } from "../config/constants";
 
 interface Notification {
@@ -21,6 +21,10 @@ interface Notification {
 export function useWebSocketNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const maxReconnectAttempts = 5;
 
   const addNotification = useCallback(
     (notification: Omit<Notification, "id" | "timestamp">) => {
@@ -48,6 +52,41 @@ export function useWebSocketNotifications() {
     (message: any) => {
       console.log("WebSocket message received:", message);
 
+      // Manejar mensajes por event (formato del backend)
+      if (message.event) {
+        switch (message.event) {
+          case "permisoNotification":
+            console.log("Notificación de permiso recibida:", message.message);
+            addNotification({
+              type: "info",
+              message: message.message,
+              user: message.permiso?.tecnico
+                ? { nombre: message.permiso.tecnico.nombre }
+                : undefined,
+              trabajoId: message.permiso?.trabajo?.id,
+              tecnicoId: message.permiso?.tecnico?.id,
+            });
+            break;
+
+          case "authenticated":
+            console.log("WebSocket autenticado:", message.message);
+            break;
+
+          case "authError":
+            console.error("Error de autenticación WebSocket:", message.message);
+            break;
+
+          case "userConnected":
+            console.log("Nuevo usuario conectado:", message.message);
+            break;
+
+          default:
+            console.log("Evento no manejado:", message.event);
+        }
+        return; // Salir después de manejar el evento
+      }
+
+      // Manejar mensajes por type (formato anterior)
       switch (message.type) {
         case NOTIFICATION_TYPES.TRABAJO_INICIADO:
           addNotification({
@@ -127,50 +166,112 @@ export function useWebSocketNotifications() {
       return;
     }
 
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3000";
-    const ws = new WebSocket(`${wsUrl}/ws?token=${token}`);
+    // Verificar si el token es válido antes de conectar
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const expirationTime = payload.exp * 1000;
+      const currentTime = Date.now();
 
-    ws.onopen = () => {
-      console.log("WebSocket connected");
-      setIsConnected(true);
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        handleWebSocketMessage(message);
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
+      if (currentTime > expirationTime) {
+        console.log("Token expirado, no conectando WebSocket");
+        return;
       }
-    };
+    } catch (tokenError) {
+      console.error("Token inválido, no conectando WebSocket:", tokenError);
+      return;
+    }
 
-    ws.onclose = () => {
-      console.log("WebSocket disconnected");
+    // Cerrar conexión existente si hay una
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+
+    try {
+      const wsUrl =
+        process.env.NEXT_PUBLIC_WS_URL ||
+        "wss://cmobackendnest-production.up.railway.app/ws";
+
+      console.log("Conectando WebSocket a:", wsUrl);
+      const ws = new WebSocket(`${wsUrl}?token=${token}`);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        console.log("WebSocket connected successfully");
+        setIsConnected(true);
+        reconnectAttemptsRef.current = 0;
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          handleWebSocketMessage(message);
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error);
+        }
+      };
+
+      ws.onclose = (event) => {
+        console.log("WebSocket disconnected:", event.code, event.reason);
+        setIsConnected(false);
+
+        // Intentar reconectar si no fue un cierre intencional y no hemos excedido los intentos
+        if (
+          event.code !== 1000 &&
+          reconnectAttemptsRef.current < maxReconnectAttempts
+        ) {
+          const delay = Math.min(
+            1000 * Math.pow(2, reconnectAttemptsRef.current),
+            30000
+          );
+          console.log(
+            `Reconectando en ${delay}ms (intento ${
+              reconnectAttemptsRef.current + 1
+            }/${maxReconnectAttempts})`
+          );
+
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectAttemptsRef.current++;
+            connectWebSocket();
+          }, delay);
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        setIsConnected(false);
+      };
+
+      return ws;
+    } catch (error) {
+      console.error("Error creating WebSocket:", error);
       setIsConnected(false);
-
-      // Attempt to reconnect after 5 seconds
-      setTimeout(() => {
-        connectWebSocket();
-      }, 5000);
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-      setIsConnected(false);
-    };
-
-    return ws;
+      return null;
+    }
   }, [handleWebSocketMessage]);
+
+  const disconnect = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
+    if (wsRef.current) {
+      wsRef.current.close(1000, "Desconexión intencional");
+      wsRef.current = null;
+    }
+
+    setIsConnected(false);
+    reconnectAttemptsRef.current = 0;
+  }, []);
 
   useEffect(() => {
     const ws = connectWebSocket();
 
     return () => {
-      if (ws) {
-        ws.close();
-      }
+      disconnect();
     };
-  }, [connectWebSocket]);
+  }, [connectWebSocket, disconnect]);
 
   return {
     notifications,

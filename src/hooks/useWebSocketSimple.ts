@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
-const WS_URL = "wss://cmobackendnest-production.up.railway.app";
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "wss://cmobackendnest-production.up.railway.app";
 
 export interface ConnectedUser {
   id: number;

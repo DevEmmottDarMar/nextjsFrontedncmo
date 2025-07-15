@@ -44,48 +44,22 @@ class TrabajosService {
   // Obtener trabajos pendientes de aprobación
   async getTrabajosPendientesAprobacion(): Promise<TrabajoInicio[]> {
     try {
-      const headers = await this.getAuthHeaders();
-      const token = localStorage.getItem("token");
-
-      console.log("🔍 Llamando a trabajos pendientes de aprobación...");
-      console.log("🔑 Token presente:", !!token);
-      console.log("🌐 URL:", `${API_BASE_URL}/trabajos/pendientes-aprobacion`);
-
       const response = await fetch(
         `${API_BASE_URL}/trabajos/pendientes-aprobacion`,
         {
           method: "GET",
-          headers,
+          headers: await this.getAuthHeaders(),
         }
       );
 
-      console.log("📊 Response status:", response.status);
-      console.log("📊 Response headers:", response.headers);
-
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Error response:", errorText);
-
-        if (response.status === 401) {
-          throw new Error(
-            "No autorizado. Verifica que hayas iniciado sesión correctamente."
-          );
-        } else if (response.status === 500) {
-          throw new Error(
-            "Error interno del servidor. Contacta al administrador."
-          );
-        } else {
-          throw new Error(
-            `Error del servidor: ${response.status} - ${errorText}`
-          );
-        }
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("✅ Datos recibidos:", data);
       return data;
     } catch (error) {
-      console.error("❌ Error obteniendo trabajos pendientes:", error);
+      console.error("Error obteniendo trabajos pendientes:", error);
       throw error;
     }
   }

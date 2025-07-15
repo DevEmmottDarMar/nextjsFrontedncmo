@@ -14,14 +14,14 @@ interface DashboardStatsProps {
 }
 
 export default function DashboardStats({
-  tecnicosConectados,
-  notificationHistory,
-  permisosPendientes,
-  trabajosActivos,
-  trabajos,
-  loadingTrabajos,
-  user,
-  equiposAlerta,
+  tecnicosConectados = [],
+  notificationHistory = [],
+  permisosPendientes = [],
+  trabajosActivos = [],
+  trabajos = [],
+  loadingTrabajos = false,
+  user = null,
+  equiposAlerta = [],
 }: DashboardStatsProps) {
   return (
     <>
@@ -32,7 +32,7 @@ export default function DashboardStats({
             <span className="text-gray-500 text-xs">Técnicos Online</span>
           </div>
           <span className="text-2xl font-bold text-blue-600">
-            {tecnicosConectados.length}
+            {tecnicosConectados?.length || 0}
           </span>
           <span className="text-xs text-gray-500 mt-1">
             Conectados en tiempo real
@@ -45,7 +45,7 @@ export default function DashboardStats({
             <span className="text-gray-500 text-xs">Notificaciones</span>
           </div>
           <span className="text-2xl font-bold text-orange-600">
-            {notificationHistory.length}
+            {notificationHistory?.length || 0}
           </span>
           <span className="text-xs text-gray-500 mt-1">Historial completo</span>
         </div>
@@ -55,14 +55,14 @@ export default function DashboardStats({
             Permisos Pendientes
           </span>
           <span className="text-2xl font-bold text-yellow-600">
-            {permisosPendientes.length}
+            {permisosPendientes?.length || 0}
           </span>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4 flex flex-col items-start">
           <span className="text-gray-500 text-xs mb-1">Trabajos Activos</span>
           <span className="text-2xl font-bold text-green-600">
-            {trabajosActivos.length}
+            {trabajosActivos?.length || 0}
           </span>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function DashboardStats({
             <span className="text-gray-500 text-xs">Trabajos del Área</span>
           </div>
           <span className="text-2xl font-bold text-purple-600">
-            {loadingTrabajos ? "..." : trabajos.length}
+            {loadingTrabajos ? "..." : trabajos?.length || 0}
           </span>
           <span className="text-xs text-gray-500 mt-1">
             {user?.area?.nombre || "Sin área asignada"}
@@ -85,7 +85,7 @@ export default function DashboardStats({
         <div className="bg-white rounded-lg shadow p-4 flex flex-col items-start">
           <span className="text-gray-500 text-xs mb-1">Equipos en Alerta</span>
           <span className="text-2xl font-bold text-red-600">
-            {equiposAlerta.length}
+            {equiposAlerta?.length || 0}
           </span>
         </div>
       </div>

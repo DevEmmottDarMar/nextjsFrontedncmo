@@ -47,6 +47,8 @@ export default function NotificationManager({
         return "bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 text-green-800";
       case "trabajo_rechazado":
         return "bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 text-red-800";
+      case "info":
+        return "bg-gradient-to-r from-cyan-50 to-blue-50 border-l-4 border-cyan-500 text-cyan-800";
       default:
         return "bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 text-green-800";
     }
@@ -60,6 +62,8 @@ export default function NotificationManager({
         return "bg-green-100";
       case "trabajo_rechazado":
         return "bg-red-100";
+      case "info":
+        return "bg-cyan-100";
       default:
         return "bg-green-100";
     }
@@ -73,6 +77,8 @@ export default function NotificationManager({
         return "text-green-800";
       case "trabajo_rechazado":
         return "text-red-800";
+      case "info":
+        return "text-cyan-800";
       default:
         return "text-green-800";
     }
@@ -86,6 +92,8 @@ export default function NotificationManager({
         return "bg-green-500";
       case "trabajo_rechazado":
         return "bg-red-500";
+      case "info":
+        return "bg-cyan-500";
       default:
         return "bg-green-500";
     }
@@ -99,6 +107,8 @@ export default function NotificationManager({
         return <span className="text-green-600 text-lg">✅</span>;
       case "trabajo_rechazado":
         return <span className="text-red-600 text-lg">❌</span>;
+      case "info":
+        return <span className="text-cyan-600 text-lg">📸</span>;
       default:
         return <UsersIcon className="h-5 w-5 text-green-600" />;
     }
@@ -112,6 +122,8 @@ export default function NotificationManager({
         return "✅ Trabajo Aprobado";
       case "trabajo_rechazado":
         return "❌ Trabajo Rechazado";
+      case "info":
+        return "📸 Foto Enviada";
       default:
         return "🎉 Nuevo Técnico Conectado";
     }
@@ -125,6 +137,8 @@ export default function NotificationManager({
         return "Trabajo autorizado";
       case "trabajo_rechazado":
         return "Trabajo rechazado";
+      case "info":
+        return "Pendiente de revisión";
       default:
         return "Conectado desde dispositivo móvil";
     }
@@ -138,6 +152,8 @@ export default function NotificationManager({
         return "text-green-400 hover:text-green-600";
       case "trabajo_rechazado":
         return "text-red-400 hover:text-red-600";
+      case "info":
+        return "text-cyan-400 hover:text-cyan-600";
       default:
         return "text-green-400 hover:text-green-600";
     }
@@ -151,6 +167,8 @@ export default function NotificationManager({
         return "text-green-500";
       case "trabajo_rechazado":
         return "text-red-500";
+      case "info":
+        return "text-cyan-500";
       default:
         return "text-green-500";
     }

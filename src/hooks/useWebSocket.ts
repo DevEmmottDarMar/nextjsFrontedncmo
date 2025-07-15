@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 const WS_URL =
   process.env.NEXT_PUBLIC_WS_URL ||
-  "wss://cmobackendnest-production.up.railway.app";
+  "wss://cmobackendnest-production.up.railway.app/ws";
 
 export interface ConnectedUser {
   id: number;
@@ -92,6 +92,21 @@ export const useWebSocket = (): UseWebSocketReturn => {
       return;
     }
 
+    // Verificar si el token es válido antes de conectar
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const expirationTime = payload.exp * 1000;
+      const currentTime = Date.now();
+
+      if (currentTime > expirationTime) {
+        console.log("Token expirado, no conectando WebSocket");
+        return;
+      }
+    } catch (tokenError) {
+      console.error("Token inválido, no conectando WebSocket:", tokenError);
+      return;
+    }
+
     try {
       console.log("Conectando WebSocket...");
       const ws = new WebSocket(WS_URL);
@@ -148,20 +163,32 @@ export const useWebSocket = (): UseWebSocketReturn => {
 
               case "permisoNotification":
                 console.log("Notificación de permiso:", message.message);
+                // Mostrar notificación nativa del navegador
+                if (
+                  "Notification" in window &&
+                  Notification.permission === "granted"
+                ) {
+                  new Notification("Nuevo Permiso", {
+                    body: message.message,
+                    icon: "/favicon.ico",
+                    tag: "permiso_notification",
+                    requireInteraction: false,
+                  });
+                }
                 break;
 
               case "userConnected":
                 console.log("Nuevo usuario conectado:", message.message);
-                
+
                 // Prevenir notificaciones duplicadas del mismo usuario
                 const now = Date.now();
                 const userId = message.user?.id;
                 const lastNotification = lastNotificationRef.current;
-                
+
                 if (
                   userId &&
                   lastNotification &&
-                    lastNotification.userId === userId && 
+                  lastNotification.userId === userId &&
                   now - lastNotification.timestamp < 5000
                 ) {
                   console.log(
@@ -170,12 +197,12 @@ export const useWebSocket = (): UseWebSocketReturn => {
                   );
                   break;
                 }
-                
+
                 // Actualizar referencia de última notificación
                 if (userId) {
                   lastNotificationRef.current = { userId, timestamp: now };
                 }
-                
+
                 // Mostrar notificación nativa
                 showNotification("Nuevo Usuario Conectado", {
                   body: message.message,
