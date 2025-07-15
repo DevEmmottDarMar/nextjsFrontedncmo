@@ -24,3 +24,183 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Animaciones personalizadas */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-slide-out-right {
+  animation: slide-out-right 0.3s ease-in;
+}
+
+/* Utilidades para line-clamp */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Mejoras para transiciones suaves */
+.transition-all {
+  transition: all 0.2s ease-in-out;
+}
+
+.hover\:shadow-md:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Animaciones para el panel lateral de filtros */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.slide-out-right {
+  animation: slideOutRight 0.3s ease-in;
+}
+
+/* Estilos para el panel colapsado */
+.filter-panel-collapsed {
+  width: 3rem;
+}
+
+@media (min-width: 640px) {
+  .filter-panel-collapsed {
+    width: 3.5rem;
+  }
+}
+
+.filter-panel-expanded {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .filter-panel-expanded {
+    width: 20rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .filter-panel-expanded {
+    width: 24rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .filter-panel-expanded {
+    width: 20rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .filter-panel-expanded {
+    width: 24rem;
+  }
+}
+
+/* Transiciones suaves para el contenido principal */
+.content-with-filters {
+  transition: margin-right 0.3s ease-in-out;
+}
+
+/* Estilos para los iconos del panel colapsado */
+.filter-icon {
+  transition: all 0.2s ease-in-out;
+}
+
+.filter-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Scrollbar personalizado para el panel de filtros */
+.filter-panel-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.filter-panel-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-panel-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.filter-panel-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.filter-panel-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

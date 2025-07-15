@@ -164,18 +164,6 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Welcome Card */}
-        <div
-          className={`bg-gradient-to-r ${roleInfo.color} rounded-xl shadow-lg p-8 mb-6`}
-        >
-          <div className="text-center text-white">
-            <div className="text-6xl mb-4">{roleInfo.emoji}</div>
-            <h2 className="text-3xl font-bold mb-2">{roleInfo.greeting}</h2>
-            <h3 className="text-xl font-semibold mb-4">{user.nombre}</h3>
-            <p className="text-lg opacity-90">{roleInfo.message}</p>
-          </div>
-        </div>
-
         {/* Role-Specific Dashboard Content */}
         {renderRoleSpecificDashboard()}
       </main>
